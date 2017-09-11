@@ -28,6 +28,11 @@ thing = 'world'
 print(f'hello {thing}')
 ```
 
+```console
+$ python2.7 main.py
+hello world
+```
+
 
 ## How does this work?
 
