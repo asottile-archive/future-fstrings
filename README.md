@@ -22,7 +22,7 @@ the utf-8 cookie if you already have it):
 
 And then write python3.6 fstring code as usual!
 
-```
+```python
 # -*- coding: future_fstrings -*-
 thing = 'world'
 print(f'hello {thing})
