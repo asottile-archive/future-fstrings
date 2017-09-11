@@ -1,0 +1,22 @@
+repos:
+-   repo: https://github.com/pre-commit/pre-commit-hooks
+    sha: v0.9.1
+    hooks:
+    -   id: trailing-whitespace
+        language_version: python3.6
+    -   id: end-of-file-fixer
+        language_version: python3.6
+    -   id: autopep8-wrapper
+        language_version: python3.6
+    -   id: check-docstring-first
+        language_version: python3.6
+    -   id: check-yaml
+        language_version: python3.6
+    -   id: debug-statements
+        language_version: python3.6
+    -   id: name-tests-test
+        language_version: python3.6
+    -   id: requirements-txt-fixer
+        language_version: python3.6
+    -   id: flake8
+        language_version: python3.6
