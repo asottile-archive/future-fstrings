@@ -89,8 +89,8 @@ class StreamReader(Codec, codecs.StreamReader):
 # codec api
 
 codec_map = {
-    'future_fstrings': codecs.CodecInfo(
-        name='future_fstrings',
+    name: codecs.CodecInfo(
+        name=name,
         encode=encode,
         decode=decode,
         incrementalencoder=IncrementalEncoder,
@@ -98,6 +98,7 @@ codec_map = {
         streamreader=StreamReader,
         streamwriter=StreamWriter,
     )
+    for name in ('future-fstrings', 'future_fstrings')
 }
 
 
