@@ -1,13 +1,9 @@
 import codecs
-import re
 import string
 
 encode = codecs.utf_8_encode
 
 _parse_format = string.Formatter().parse
-
-_start_quote_re = re.compile('^[a-z]*(\'|"|\'\'\'|""")')
-_end_quote_re = re.compile('(\'|"|\'\'\'|""")$')
 
 
 def _make_fstring(src):
