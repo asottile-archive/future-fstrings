@@ -25,7 +25,7 @@ And then write python3.6 fstring code as usual!
 ```python
 # -*- coding: future_fstrings -*-
 thing = 'world'
-print(f'hello {thing})
+print(f'hello {thing}')
 ```
 
 
