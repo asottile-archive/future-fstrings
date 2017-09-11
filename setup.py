@@ -49,7 +49,7 @@ setup(
     name='future_fstrings',
     description='A tool to automatically upgrade syntax for newer versions.',
     url='https://github.com/asottile/future-fstrings',
-    version='0.0.0',
+    version='0.1.0',
     author='Anthony Sottile',
     author_email='asottile@umich.edu',
     classifiers=[
