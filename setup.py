@@ -62,7 +62,7 @@ setup(
         'Programming Language :: Python :: Implementation :: CPython',
         'Programming Language :: Python :: Implementation :: PyPy',
     ],
-    extras_require={':python_version!="2.7"': ['tokenize-rt']},
+    extras_require={':python_version<"3.6"': ['tokenize-rt']},
     py_modules=['future_fstrings'],
     cmdclass={'install': install},
 )
