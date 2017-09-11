@@ -47,9 +47,9 @@ class install(_install):
 
 setup(
     name='future_fstrings',
-    description='A tool to automatically upgrade syntax for newer versions.',
+    description='A backport of fstrings to python<3.6',
     url='https://github.com/asottile/future-fstrings',
-    version='0.1.0',
+    version='0.1.1',
     author='Anthony Sottile',
     author_email='asottile@umich.edu',
     classifiers=[
