@@ -10,9 +10,9 @@ matrix:
             python: 3.6
         -   env: TOXENV=pypy
             python: pypy
-install: pip install coveralls tox
+install: pip install tox
 script: tox
-after_success: coveralls
+after_success: tox -e coveralls
 cache:
     directories:
         - $HOME/.cache/pip
