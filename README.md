@@ -1,4 +1,5 @@
 [![Build Status](https://travis-ci.org/asottile/future-fstrings.svg?branch=master)](https://travis-ci.org/asottile/future-fstrings)
+[![Coverage Status](https://coveralls.io/repos/github/asottile/future-fstrings/badge.svg?branch=reimplement_string_parser)](https://coveralls.io/github/asottile/future-fstrings?branch=reimplement_string_parser)
 
 future-fstrings
 ===============
