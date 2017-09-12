@@ -49,7 +49,7 @@ setup(
     name='future_fstrings',
     description='A backport of fstrings to python<3.6',
     url='https://github.com/asottile/future-fstrings',
-    version='0.1.1',
+    version='0.2.0',
     author='Anthony Sottile',
     author_email='asottile@umich.edu',
     classifiers=[
