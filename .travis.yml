@@ -12,6 +12,7 @@ matrix:
             python: pypy
 install: pip install tox
 script: tox
+after_success: tox -e coveralls
 cache:
     directories:
         - $HOME/.cache/pip
