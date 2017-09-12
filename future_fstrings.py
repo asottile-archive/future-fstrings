@@ -119,13 +119,12 @@ def _find_expr(s, start, level, parts, exprs):
 
 def _fstring_parse(s, i, level, parts, exprs):
     """Roughly Python.ast.c:fstring_find_literal_and_expr"""
-    while i < len(s):
+    while True:
         i, parse_expr = _find_literal(s, i, level, parts, exprs)
         if i == len(s) or s[i] == '}':
             return i
         if parse_expr:
             i = _find_expr(s, i, level, parts, exprs)
-    return i
 
 
 def _fstring_reformat(s):
@@ -164,25 +163,25 @@ def _natively_supports_fstrings():
 
 
 SUPPORTS_FSTRINGS = _natively_supports_fstrings()
-if SUPPORTS_FSTRINGS:
+if SUPPORTS_FSTRINGS:  # pragma: no cover
     decode = codecs.utf_8_decode  # noqa
 
 
 class IncrementalEncoder(codecs.IncrementalEncoder):
-    def encode(self, s, final=False):
+    def encode(self, s, final=False):  # pragma: no cover
         return encode(s, self.errors)[0]
 
 
 class IncrementalDecoder(codecs.BufferedIncrementalDecoder):
-    def decode(self, b, final=False):
+    def decode(self, b, final=False):  # pragma: no cover
         return decode(b, self.errors)[0]
 
 
 class Codec(codecs.Codec):
-    def encode(self, s, errors='strict'):
+    def encode(self, s, errors='strict'):  # pragma: no cover
         return encode(s, errors)
 
-    def decode(self, b, errors='strict'):
+    def decode(self, b, errors='strict'):  # pragma: no cover
         return decode(b, errors)
 
 
@@ -210,5 +209,5 @@ codec_map = {
 }
 
 
-def register():
+def register():  # pragma: no cover
     codecs.register(codec_map.get)

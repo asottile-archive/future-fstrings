@@ -1,4 +1,6 @@
 # -*- coding: future_fstrings -*-
+import imp
+
 import pytest
 
 import future_fstrings
@@ -16,6 +18,7 @@ def test_maths():
 def test_with_bangs():
     thing = 'world'
     assert f'hello {thing.replace("d", "d!")}' == 'hello world!'
+    assert f'hello {1 != 2}' == 'hello True'
 
 
 def test_with_braces():
@@ -27,6 +30,7 @@ def test_strings_quoting_variables():
     assert f"hello {'{x}'}" == 'hello {x}'
     assert f'hello {"""{x}"""}' == 'hello {x}'
     assert f"hello {'''{x}'''}" == 'hello {x}'
+    assert f'hello {"""a"a"""}' == 'hello a"a'
 
 
 def test_sequence_literals():
@@ -38,7 +42,13 @@ def test_sequence_literals():
 def test_nested_format_literals():
     x = 5
     y = 6
+    fmt = '6d'
     assert f'{x:{y}d}' == '     5'
+    assert f'{x:{fmt}}' == '     5'
+
+
+def test_conversion_modifiers():
+    assert f'hello {str("hi")!r}' == "hello 'hi'"
 
 
 def _assert_fails_with_msg(s, expected_msg):
@@ -83,3 +93,12 @@ def test_too_deep():
     _assert_fails_with_msg(
         "'{x:{y:{z}}}'", 'f-string: expressions nested too deeply',
     )
+
+
+def test_fix_coverage():
+    """Because our module is loaded so early in python startup, coverage
+    doesn't have a chance to instrument the module-level scope.
+
+    Run this last so it doesn't interfere with tests in any way.
+    """
+    imp.reload(future_fstrings)
