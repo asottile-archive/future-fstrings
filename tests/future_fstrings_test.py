@@ -3,6 +3,7 @@ from __future__ import absolute_import
 from __future__ import unicode_literals
 
 import imp
+import io
 import subprocess
 import sys
 
@@ -70,7 +71,7 @@ def test_conversion_modifiers():
 
 
 def _assert_fails_with_msg(s, expected_msg):
-    with pytest.raises(AssertionError) as excinfo:
+    with pytest.raises(SyntaxError) as excinfo:
         future_fstrings._fstring_reformat(s)
     msg, = excinfo.value.args
     assert msg == expected_msg
@@ -111,6 +112,28 @@ def test_too_deep():
     _assert_fails_with_msg(
         "'{x:{y:{z}}}'", 'f-string: expressions nested too deeply',
     )
+
+
+@pytest.mark.xfail(future_fstrings.SUPPORTS_FSTRINGS, reason='native')
+def test_better_error_messages():
+    with pytest.raises(SyntaxError) as excinfo:
+        future_fstrings.decode(b"def test():\n    f'bad {'\n")
+    msg, = excinfo.value.args
+    assert msg == (
+        "f-string: expecting '}'\n\n"
+        "    f'bad {'\n"
+        '    ^'
+    )
+
+
+def test_streamreader_does_not_error_on_construction():
+    future_fstrings.StreamReader(io.BytesIO(b"f'error{'"))
+
+
+@pytest.mark.xfail(future_fstrings.SUPPORTS_FSTRINGS, reason='native')
+def test_streamreader_read():
+    reader = future_fstrings.StreamReader(io.BytesIO(b"f'hi {x}'"))
+    assert reader.read() == "'hi {}'.format((x))"
 
 
 def test_fix_coverage():
