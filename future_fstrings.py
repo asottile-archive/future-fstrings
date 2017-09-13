@@ -176,9 +176,6 @@ class StreamReader(utf_8.streamreader, object):
     _stream = None
     _decoded = False
 
-    def __init__(self, *args, **kwargs):
-        utf_8.streamreader.__init__(self, *args, **kwargs)
-
     @property
     def stream(self):
         if not self._decoded:
