@@ -7,7 +7,6 @@ import io
 
 
 utf_8 = encodings.search_function('utf8')
-encode = utf_8.encode
 
 
 def _find_literal(s, start, level, parts, exprs):
@@ -25,7 +24,7 @@ def _find_literal(s, start, level, parts, exprs):
                     parse_expr = False
                     break
                 elif ch == '}':
-                    raise AssertionError("f-string: single '}' is not allowed")
+                    raise SyntaxError("f-string: single '}' is not allowed")
             break
 
         i += 1
@@ -43,10 +42,10 @@ def _find_expr(s, start, level, parts, exprs):
 
     def _check_end():
         if i == len(s):
-            raise AssertionError("f-string: expecting '}'")
+            raise SyntaxError("f-string: expecting '}'")
 
     if level >= 2:
-        raise AssertionError("f-string: expressions nested too deeply")
+        raise SyntaxError("f-string: expressions nested too deeply")
 
     parts.append(s[i])
     i += 1
@@ -55,7 +54,7 @@ def _find_expr(s, start, level, parts, exprs):
         ch = s[i]
 
         if ch == '\\':
-            raise AssertionError(
+            raise SyntaxError(
                 'f-string expression part cannot include a backslash',
             )
         if quote_char is not None:
@@ -80,7 +79,7 @@ def _find_expr(s, start, level, parts, exprs):
         elif nested_depth and ch in (']', '}', ')'):
             nested_depth -= 1
         elif ch == '#':
-            raise AssertionError("f-string expression cannot include '#'")
+            raise SyntaxError("f-string expression cannot include '#'")
         elif nested_depth == 0 and ch in ('!', ':', '}'):
             if ch == '!' and i + 1 < len(s) and s[i + 1] == '=':
                 # Allow != at top level as `=` isn't a valid conversion
@@ -90,9 +89,9 @@ def _find_expr(s, start, level, parts, exprs):
         i += 1
 
     if quote_char is not None:
-        raise AssertionError('f-string: unterminated string')
+        raise SyntaxError('f-string: unterminated string')
     elif nested_depth:
-        raise AssertionError("f-string: mismatched '(', '{', or '['")
+        raise SyntaxError("f-string: mismatched '(', '{', or '['")
     _check_end()
 
     exprs.append(s[start + 1:i])
@@ -113,8 +112,7 @@ def _find_expr(s, start, level, parts, exprs):
         i = _fstring_parse(s, i, level + 1, parts, exprs)
 
     _check_end()
-    if s[i] != '}':
-        raise AssertionError("f-string: expecting '}'")
+    assert s[i] == '}', (i, s, s[i])
 
     parts.append(s[i])
     i += 1
@@ -147,7 +145,7 @@ def _make_fstring(src):
 def decode(b, errors='strict'):
     import tokenize_rt
 
-    u, l = codecs.utf_8_decode(b, errors)
+    u, l = utf_8.decode(b, errors)
     tokens = tokenize_rt.src_to_tokens(u)
     for i, token in reversed(tuple(enumerate(tokens))):
         if (
@@ -155,8 +153,44 @@ def decode(b, errors='strict'):
                 token.src == 'f' and
                 tokens[i + 1].name == 'STRING'
         ):
-            tokens[i:i + 2] = _make_fstring(tokens[i + 1].src)
+            try:
+                tokens[i:i + 2] = _make_fstring(tokens[i + 1].src)
+            except SyntaxError as e:
+                msg = str(e)
+                line = u.splitlines()[token.line - 1]
+                bts = line.encode('UTF-8')[:token.utf8_byte_offset]
+                indent = len(bts.decode('UTF-8'))
+                raise SyntaxError(
+                    msg + '\n\n' + line + '\n' + ' ' * indent + '^'
+                )
     return tokenize_rt.tokens_to_src(tokens), l
+
+
+class IncrementalDecoder(codecs.BufferedIncrementalDecoder):
+    def decode(self, b, final=False):  # pragma: no cover
+        return decode(b, self.errors)[0]
+
+
+class StreamReader(utf_8.streamreader, object):
+    """decode is deferred to support better error messages"""
+    _stream = None
+    _decoded = False
+
+    def __init__(self, *args, **kwargs):
+        utf_8.streamreader.__init__(self, *args, **kwargs)
+
+    @property
+    def stream(self):
+        if not self._decoded:
+            text, _ = decode(self._stream.read())
+            self._stream = io.BytesIO(text.encode('UTF-8'))
+            self._decoded = True
+        return self._stream
+
+    @stream.setter
+    def stream(self, stream):
+        self._stream = stream
+        self._decoded = False
 
 
 def _natively_supports_fstrings():
@@ -169,27 +203,15 @@ def _natively_supports_fstrings():
 SUPPORTS_FSTRINGS = _natively_supports_fstrings()
 if SUPPORTS_FSTRINGS:  # pragma: no cover
     decode = utf_8.decode  # noqa
-
-
-class IncrementalDecoder(codecs.BufferedIncrementalDecoder):
-    def decode(self, b, final=False):  # pragma: no cover
-        return decode(b, self.errors)[0]
-
-
-class StreamReader(utf_8.streamreader):
-    def __init__(self, *args, **kwargs):  # pragma: no cover
-        utf_8.streamreader.__init__(self, *args, **kwargs)
-        text, _ = decode(self.stream.read())
-        data, _ = encode(text)
-        self.stream = io.BytesIO(data)
-
+    IncrementalDecoder = utf_8.incrementaldecoder  # noqa
+    StreamReader = utf_8.streamreader  # noqa
 
 # codec api
 
 codec_map = {
     name: codecs.CodecInfo(
         name=name,
-        encode=encode,
+        encode=utf_8.encode,
         decode=decode,
         incrementalencoder=utf_8.incrementalencoder,
         incrementaldecoder=IncrementalDecoder,
