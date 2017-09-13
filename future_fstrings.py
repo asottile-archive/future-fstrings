@@ -2,8 +2,12 @@ from __future__ import absolute_import
 from __future__ import unicode_literals
 
 import codecs
+import encodings
+import io
 
-encode = codecs.utf_8_encode
+
+utf_8 = encodings.search_function('utf8')
+encode = utf_8.encode
 
 
 def _find_literal(s, start, level, parts, exprs):
@@ -164,12 +168,7 @@ def _natively_supports_fstrings():
 
 SUPPORTS_FSTRINGS = _natively_supports_fstrings()
 if SUPPORTS_FSTRINGS:  # pragma: no cover
-    decode = codecs.utf_8_decode  # noqa
-
-
-class IncrementalEncoder(codecs.IncrementalEncoder):
-    def encode(self, s, final=False):  # pragma: no cover
-        return encode(s, self.errors)[0]
+    decode = utf_8.decode  # noqa
 
 
 class IncrementalDecoder(codecs.BufferedIncrementalDecoder):
@@ -177,20 +176,12 @@ class IncrementalDecoder(codecs.BufferedIncrementalDecoder):
         return decode(b, self.errors)[0]
 
 
-class Codec(codecs.Codec):
-    def encode(self, s, errors='strict'):  # pragma: no cover
-        return encode(s, errors)
-
-    def decode(self, b, errors='strict'):  # pragma: no cover
-        return decode(b, errors)
-
-
-class StreamWriter(Codec, codecs.StreamWriter):
-    pass
-
-
-class StreamReader(Codec, codecs.StreamReader):
-    pass
+class StreamReader(utf_8.streamreader):
+    def __init__(self, *args, **kwargs):  # pragma: no cover
+        utf_8.streamreader.__init__(self, *args, **kwargs)
+        text, _ = decode(self.stream.read())
+        data, _ = encode(text)
+        self.stream = io.BytesIO(data)
 
 
 # codec api
@@ -200,10 +191,10 @@ codec_map = {
         name=name,
         encode=encode,
         decode=decode,
-        incrementalencoder=IncrementalEncoder,
+        incrementalencoder=utf_8.incrementalencoder,
         incrementaldecoder=IncrementalDecoder,
         streamreader=StreamReader,
-        streamwriter=StreamWriter,
+        streamwriter=utf_8.streamwriter,
     )
     for name in ('future-fstrings', 'future_fstrings')
 }

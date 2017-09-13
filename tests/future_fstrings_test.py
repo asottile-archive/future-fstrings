@@ -1,5 +1,10 @@
 # -*- coding: future_fstrings -*-
+from __future__ import absolute_import
+from __future__ import unicode_literals
+
 import imp
+import subprocess
+import sys
 
 import pytest
 
@@ -13,6 +18,19 @@ def test_hello_world():
 
 def test_maths():
     assert f'{5 + 5}' == '10'
+
+
+def test_long_unicode(tmpdir):
+    # This only reproduces outside pytest
+    f = tmpdir.join('f.py')
+    f.write_text(
+        '# -*- coding: future_fstrings _*-\n'
+        'def test(a):\n'
+        '    f"ЙЙЙЙЙЙЙЙЙЙЙЙЙЙЙЙЙЙЙЙЙЙЙЙЙЙЙЙ {a}"\n'
+        'test(1)\n',
+        encoding='UTF-8',
+    )
+    assert not subprocess.check_output((sys.executable, f.strpath))
 
 
 def test_with_bangs():
