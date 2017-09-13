@@ -34,6 +34,16 @@ $ python2.7 main.py
 hello world
 ```
 
+## Showing transformed source
+
+`future-fstrings` also includes a cli to show transformed source.
+
+```console
+$ future-fstrings-show main.py
+# -*- coding: future_fstrings -*-
+thing = 'world'
+print('hello {}'.format((thing)))
+```
 
 ## How does this work?
 

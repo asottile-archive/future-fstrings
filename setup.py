@@ -64,5 +64,8 @@ setup(
     ],
     extras_require={':python_version<"3.6"': ['tokenize-rt']},
     py_modules=['future_fstrings'],
+    entry_points={'console_scripts': [
+        'future-fstrings-show=future_fstrings:main',
+    ]},
     cmdclass={'install': install},
 )
