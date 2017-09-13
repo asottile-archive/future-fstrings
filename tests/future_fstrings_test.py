@@ -12,6 +12,11 @@ import pytest
 import future_fstrings
 
 
+xfailif_native = pytest.mark.xfail(
+    future_fstrings.SUPPORTS_FSTRINGS, reason='natively supports fstrings',
+)
+
+
 def test_hello_world():
     thing = 'world'
     assert f'hello {thing}' == 'hello world'
@@ -114,7 +119,7 @@ def test_too_deep():
     )
 
 
-@pytest.mark.xfail(future_fstrings.SUPPORTS_FSTRINGS, reason='native')
+@xfailif_native
 def test_better_error_messages():
     with pytest.raises(SyntaxError) as excinfo:
         future_fstrings.decode(b"def test():\n    f'bad {'\n")
@@ -130,10 +135,25 @@ def test_streamreader_does_not_error_on_construction():
     future_fstrings.StreamReader(io.BytesIO(b"f'error{'"))
 
 
-@pytest.mark.xfail(future_fstrings.SUPPORTS_FSTRINGS, reason='native')
+@xfailif_native
 def test_streamreader_read():
     reader = future_fstrings.StreamReader(io.BytesIO(b"f'hi {x}'"))
     assert reader.read() == "'hi {}'.format((x))"
+
+
+@xfailif_native
+def test_main(tmpdir, capsys):
+    f = tmpdir.join('f.py')
+    f.write(
+        '# -*- coding: future_fstrings\n'
+        "print(f'hello {5 + 5}')\n"
+    )
+    assert not future_fstrings.main((f.strpath,))
+    out, _ = capsys.readouterr()
+    assert out == (
+        '# -*- coding: future_fstrings\n'
+        "print('hello {}'.format((5 + 5)))\n"
+    )
 
 
 def test_fix_coverage():
