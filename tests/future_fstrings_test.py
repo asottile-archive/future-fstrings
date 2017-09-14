@@ -119,6 +119,10 @@ def test_too_deep():
     )
 
 
+def test_no_curly_at_end():
+    _assert_fails_with_msg("'{x!s{y}}'", "f-string: expecting '}'")
+
+
 @xfailif_native
 def test_better_error_messages():
     with pytest.raises(SyntaxError) as excinfo:

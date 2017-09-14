@@ -114,7 +114,8 @@ def _find_expr(s, start, level, parts, exprs):
         i = _fstring_parse(s, i, level + 1, parts, exprs)
 
     _check_end()
-    assert s[i] == '}', (i, s, s[i])
+    if s[i] != '}':
+        raise SyntaxError("f-string: expecting '}'")
 
     parts.append(s[i])
     i += 1
