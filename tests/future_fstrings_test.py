@@ -75,6 +75,11 @@ def test_conversion_modifiers():
     assert f'hello {str("hi")!r}' == "hello 'hi'"
 
 
+def test_upper_case_f():
+    thing = 'world'
+    assert F'hello {thing}' == 'hello world'
+
+
 def _assert_fails_with_msg(s, expected_msg):
     with pytest.raises(SyntaxError) as excinfo:
         future_fstrings._fstring_reformat(s)
