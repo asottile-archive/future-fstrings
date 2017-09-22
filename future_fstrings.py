@@ -153,7 +153,7 @@ def decode(b, errors='strict'):
     for i, token in reversed(tuple(enumerate(tokens))):
         if (
                 token.name == 'NAME' and
-                token.src == 'f' and
+                token.src.lower() == 'f' and
                 tokens[i + 1].name == 'STRING'
         ):
             try:
