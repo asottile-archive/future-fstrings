@@ -148,7 +148,7 @@ def _make_fstring(src):
 def decode(b, errors='strict'):
     import tokenize_rt
 
-    u, l = utf_8.decode(b, errors)
+    u, length = utf_8.decode(b, errors)
     tokens = tokenize_rt.src_to_tokens(u)
     for i, token in reversed(tuple(enumerate(tokens))):
         if (
@@ -166,7 +166,7 @@ def decode(b, errors='strict'):
                 raise SyntaxError(
                     msg + '\n\n' + line + '\n' + ' ' * indent + '^'
                 )
-    return tokenize_rt.tokens_to_src(tokens), l
+    return tokenize_rt.tokens_to_src(tokens), length
 
 
 class IncrementalDecoder(codecs.BufferedIncrementalDecoder):
