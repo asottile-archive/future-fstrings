@@ -80,9 +80,22 @@ def test_upper_case_f():
     assert F'hello {thing}' == 'hello world'
 
 
+def test_implicitly_joined():
+    assert 'hello {1} ' f'hi {1}' == 'hello {1} hi 1'
+    assert f'hello {1} ' 'hi {1}' == 'hello 1 hi {1}'
+    s = (
+        f'hi {1} '
+        'hello {1}'
+    )
+    assert s == 'hi 1 hello {1}'
+    s = f'hi {1} ' \
+        'hello {1}'
+    assert s == 'hi 1 hello {1}'
+
+
 def _assert_fails_with_msg(s, expected_msg):
     with pytest.raises(SyntaxError) as excinfo:
-        future_fstrings._fstring_reformat(s)
+        future_fstrings._fstring_parse(s, 0, 0, [], [])
     msg, = excinfo.value.args
     assert msg == expected_msg
 
