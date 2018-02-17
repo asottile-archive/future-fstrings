@@ -11,6 +11,13 @@ import sys
 utf_8 = encodings.search_function('utf8')
 
 
+class TokenSyntaxError(SyntaxError):
+    def __init__(self, e, token):
+        super(TokenSyntaxError, self).__init__(e)
+        self.e = e
+        self.token = token
+
+
 def _find_literal(s, start, level, parts, exprs):
     """Roughly Python.ast.c:fstring_find_literal"""
     i = start
@@ -132,40 +139,75 @@ def _fstring_parse(s, i, level, parts, exprs):
             i = _find_expr(s, i, level, parts, exprs)
 
 
-def _fstring_reformat(s):
-    parts, exprs = [], []
-    _fstring_parse(s, i=0, level=0, parts=parts, exprs=exprs)
-    exprs = ['({})'.format(expr) for expr in exprs]
-    return '{}.format({})'.format(''.join(parts), ', '.join(exprs))
+def _is_f(tokens, i):
+    return i >= 0 and tokens[i].name == 'NAME' and tokens[i].src.lower() == 'f'
 
 
-def _make_fstring(src):
+def _make_fstring(tokens):
     import tokenize_rt
 
-    return [tokenize_rt.Token(name='FSTRING', src=_fstring_reformat(src))]
+    new_tokens = []
+    exprs = []
+
+    for i, token in enumerate(tokens):
+        if _is_f(tokens, i):
+            continue
+
+        if token.name == 'STRING' and _is_f(tokens, i - 1):
+            parts = []
+            try:
+                _fstring_parse(token.src, 0, 0, parts, exprs)
+            except SyntaxError as e:
+                raise TokenSyntaxError(e, tokens[i - 1])
+            token = token._replace(src=''.join(parts))
+        elif token.name == 'STRING' and not _is_f(tokens, i - 1):
+            new_src = token.src.replace('{', '{{').replace('}', '}}')
+            token = token._replace(src=new_src)
+        new_tokens.append(token)
+
+    exprs = ('({})'.format(expr) for expr in exprs)
+    format_src = '.format({})'.format(', '.join(exprs))
+    new_tokens.append(tokenize_rt.Token('FORMAT', src=format_src))
+
+    return new_tokens
 
 
 def decode(b, errors='strict'):
     import tokenize_rt
 
+    non_coding_tokens = frozenset((
+        'COMMENT', tokenize_rt.ESCAPED_NL, 'NL', tokenize_rt.UNIMPORTANT_WS,
+    ))
+
     u, length = utf_8.decode(b, errors)
     tokens = tokenize_rt.src_to_tokens(u)
-    for i, token in reversed(tuple(enumerate(tokens))):
-        if (
-                token.name == 'NAME' and
-                token.src.lower() == 'f' and
-                tokens[i + 1].name == 'STRING'
-        ):
-            try:
-                tokens[i:i + 2] = _make_fstring(tokens[i + 1].src)
-            except SyntaxError as e:
-                msg = str(e)
-                line = u.splitlines()[token.line - 1]
-                bts = line.encode('UTF-8')[:token.utf8_byte_offset]
-                indent = len(bts.decode('UTF-8'))
-                raise SyntaxError(
-                    msg + '\n\n' + line + '\n' + ' ' * indent + '^'
-                )
+
+    to_replace = []
+    start = end = seen_f = None
+
+    for i, token in enumerate(tokens):
+        if start is None:
+            if token.name == 'STRING':
+                start, end = i, i + 1
+                seen_f = _is_f(tokens, i - 1)
+                start -= seen_f
+        elif token.name == 'STRING':
+            end = i + 1
+            seen_f |= _is_f(tokens, i - 1)
+        elif not _is_f(tokens, i) and token.name not in non_coding_tokens:
+            if seen_f:
+                to_replace.append((start, end))
+            start = end = seen_f = None
+
+    for start, end in reversed(to_replace):
+        try:
+            tokens[start:end] = _make_fstring(tokens[start:end])
+        except TokenSyntaxError as e:
+            msg = str(e.e)
+            line = u.splitlines()[e.token.line - 1]
+            bts = line.encode('UTF-8')[:e.token.utf8_byte_offset]
+            indent = len(bts.decode('UTF-8'))
+            raise SyntaxError(msg + '\n\n' + line + '\n' + ' ' * indent + '^')
     return tokenize_rt.tokens_to_src(tokens), length
 
 
