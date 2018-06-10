@@ -55,6 +55,7 @@ def test_strings_quoting_variables():
     assert f'hello {"""{x}"""}' == 'hello {x}'
     assert f"hello {'''{x}'''}" == 'hello {x}'
     assert f'hello {"""a"a"""}' == 'hello a"a'
+    assert f"""hello {'''hi '" hello'''}""" == 'hello hi \'" hello'
 
 
 def test_sequence_literals():
@@ -95,7 +96,7 @@ def test_implicitly_joined():
 
 def _assert_fails_with_msg(s, expected_msg):
     with pytest.raises(SyntaxError) as excinfo:
-        future_fstrings._fstring_parse(s, 0, 0, [], [])
+        future_fstrings._fstring_parse_outer(s, 0, 0, [], [])
     msg, = excinfo.value.args
     assert msg == expected_msg
 

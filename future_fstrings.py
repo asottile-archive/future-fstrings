@@ -19,7 +19,7 @@ class TokenSyntaxError(SyntaxError):
 
 
 def _find_literal(s, start, level, parts, exprs):
-    """Roughly Python.ast.c:fstring_find_literal"""
+    """Roughly Python/ast.c:fstring_find_literal"""
     i = start
     parse_expr = True
 
@@ -43,7 +43,7 @@ def _find_literal(s, start, level, parts, exprs):
 
 
 def _find_expr(s, start, level, parts, exprs):
-    """Roughly Python.ast.c:fstring_find_expr"""
+    """Roughly Python/ast.c:fstring_find_expr"""
     i = start
     nested_depth = 0
     quote_char = None
@@ -76,7 +76,7 @@ def _find_expr(s, start, level, parts, exprs):
                 else:
                     quote_char = None
                     triple_quoted = None
-        elif ch in ('"', '"'):
+        elif ch in ('"', "'"):
             quote_char = ch
             if i + 2 < len(s) and s[i + 1] == ch and s[i + 2] == ch:
                 triple_quoted = True
@@ -130,13 +130,26 @@ def _find_expr(s, start, level, parts, exprs):
 
 
 def _fstring_parse(s, i, level, parts, exprs):
-    """Roughly Python.ast.c:fstring_find_literal_and_expr"""
+    """Roughly Python/ast.c:fstring_find_literal_and_expr"""
     while True:
         i, parse_expr = _find_literal(s, i, level, parts, exprs)
         if i == len(s) or s[i] == '}':
             return i
         if parse_expr:
             i = _find_expr(s, i, level, parts, exprs)
+
+
+def _fstring_parse_outer(s, i, level, parts, exprs):
+    for q in ('"' * 3, "'" * 3, '"', "'"):
+        if s.startswith(q):
+            s = s[len(q):len(s) - len(q)]
+            break
+    else:
+        raise AssertionError('unreachable')
+    parts.append(q)
+    ret = _fstring_parse(s, i, level, parts, exprs)
+    parts.append(q)
+    return ret
 
 
 def _is_f(tokens, i):
@@ -156,7 +169,7 @@ def _make_fstring(tokens):
         if token.name == 'STRING' and _is_f(tokens, i - 1):
             parts = []
             try:
-                _fstring_parse(token.src, 0, 0, parts, exprs)
+                _fstring_parse_outer(token.src, 0, 0, parts, exprs)
             except SyntaxError as e:
                 raise TokenSyntaxError(e, tokens[i - 1])
             token = token._replace(src=''.join(parts))
