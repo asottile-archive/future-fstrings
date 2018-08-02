@@ -225,8 +225,11 @@ def decode(b, errors='strict'):
 
 
 class IncrementalDecoder(codecs.BufferedIncrementalDecoder):
-    def decode(self, b, final=False):  # pragma: no cover
-        return decode(b, self.errors)[0]
+    def _buffer_decode(self, input, errors, final):  # pragma: no cover
+        if final:
+            return decode(input, errors)
+        else:
+            return '', 0
 
 
 class StreamReader(utf_8.streamreader, object):
