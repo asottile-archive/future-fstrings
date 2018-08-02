@@ -30,12 +30,25 @@ def test_long_unicode(tmpdir):
     # This only reproduces outside pytest
     f = tmpdir.join('f.py')
     f.write_text(
-        '# -*- coding: future_fstrings _*-\n'
+        '# -*- coding: future_fstrings -*-\n'
         'def test(a):\n'
         '    f"ЙЙЙЙЙЙЙЙЙЙЙЙЙЙЙЙЙЙЙЙЙЙЙЙЙЙЙЙ {a}"\n'
         'test(1)\n',
         encoding='UTF-8',
     )
+    assert not subprocess.check_output((sys.executable, f.strpath))
+
+
+def test_very_large_file(tmpdir):
+    # This only reproduces outside pytest.  See #23
+    f = tmpdir.join('f.py')
+    f.write(''.join((
+        '# -*- coding: future_fstrings -*-\n'
+        'def f(x): pass\n'
+        'f(\n',
+        '    "hi"\n' * 8192,
+        ')\n',
+    )))
     assert not subprocess.check_output((sys.executable, f.strpath))
 
 
