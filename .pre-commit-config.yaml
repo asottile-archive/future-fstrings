@@ -1,12 +1,10 @@
 repos:
 -   repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v1.2.3
+    rev: v2.0.0
     hooks:
     -   id: trailing-whitespace
         language_version: python3.6
     -   id: end-of-file-fixer
-        language_version: python3.6
-    -   id: autopep8-wrapper
         language_version: python3.6
     -   id: check-docstring-first
         language_version: python3.6
@@ -17,4 +15,9 @@ repos:
     -   id: requirements-txt-fixer
         language_version: python3.6
     -   id: flake8
+        language_version: python3.6
+-   repo: https://github.com/pre-commit/mirrors-autopep8
+    rev: v1.4
+    hooks:
+    -   id: autopep8
         language_version: python3.6
