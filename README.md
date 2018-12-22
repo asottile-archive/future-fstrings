@@ -55,3 +55,7 @@ print('hello {}'.format((thing)))
       [tokenize-rt](https://github.com/asottile/tokenize-rt) to rewrite
       f-strings.
 2. A `.pth` file which registers a codec on interpreter startup.
+
+## you may also like
+
+- [future-breakpoint](https://github.com/asottile/future-breakpoint)
