@@ -71,6 +71,11 @@ def test_strings_quoting_variables():
     assert f"""hello {'''hi '" hello'''}""" == 'hello hi \'" hello'
 
 
+def test_raw_strings():
+    assert fr'hi\ {1}' == r'hi\ 1'
+    assert fr'\n {1}' == r'\n 1'
+
+
 def test_sequence_literals():
     assert f'hello {[1, 2, 3][0]}' == 'hello 1'
     assert f'hello {sorted({1, 2, 3})[0]}' == 'hello 1'
