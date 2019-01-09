@@ -153,7 +153,7 @@ def _fstring_parse_outer(s, i, level, parts, exprs):
 
 
 def _is_f(tokens, i):
-    return i >= 0 and tokens[i].name == 'NAME' and tokens[i].src.lower() == 'f'
+    return i >= 0 and tokens[i].name == 'NAME' and 'f' in tokens[i].src.lower()
 
 
 def _make_fstring(tokens):
@@ -172,6 +172,8 @@ def _make_fstring(tokens):
                 _fstring_parse_outer(token.src, 0, 0, parts, exprs)
             except SyntaxError as e:
                 raise TokenSyntaxError(e, tokens[i - 1])
+            if 'r' in tokens[i - 1].src.lower():
+                parts = [s.replace('\\', '\\\\') for s in parts]
             token = token._replace(src=''.join(parts))
         elif token.name == 'STRING' and not _is_f(tokens, i - 1):
             new_src = token.src.replace('{', '{{').replace('}', '}}')
