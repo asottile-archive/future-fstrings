@@ -1,6 +1,6 @@
 repos:
 -   repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v2.0.0
+    rev: v2.1.0
     hooks:
     -   id: trailing-whitespace
         language_version: python3.6
@@ -14,10 +14,13 @@ repos:
         language_version: python3.6
     -   id: requirements-txt-fixer
         language_version: python3.6
+-   repo: https://gitlab.com/pycqa/flake8
+    rev: 3.7.1
+    hooks:
     -   id: flake8
         language_version: python3.6
 -   repo: https://github.com/pre-commit/mirrors-autopep8
-    rev: v1.4
+    rev: v1.4.3
     hooks:
     -   id: autopep8
         language_version: python3.6
