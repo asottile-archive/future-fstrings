@@ -1,5 +1,5 @@
-[![Build Status](https://travis-ci.org/asottile/future-fstrings.svg?branch=master)](https://travis-ci.org/asottile/future-fstrings)
-[![Coverage Status](https://coveralls.io/repos/github/asottile/future-fstrings/badge.svg?branch=reimplement_string_parser)](https://coveralls.io/github/asottile/future-fstrings?branch=reimplement_string_parser)
+[![Build Status](https://asottile.visualstudio.com/asottile/_apis/build/status/asottile.future-fstrings?branchName=master)](https://asottile.visualstudio.com/asottile/_build/latest?definitionId=15&branchName=master)
+[![Azure DevOps coverage](https://img.shields.io/azure-devops/coverage/asottile/asottile/15/master.svg)](https://dev.azure.com/asottile/asottile/_build/latest?definitionId=15&branchName=master)
 
 future-fstrings
 ===============
