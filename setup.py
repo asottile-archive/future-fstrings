@@ -45,27 +45,4 @@ class install(_install):
             )
 
 
-setup(
-    name='future_fstrings',
-    description='A backport of fstrings to python<3.6',
-    url='https://github.com/asottile/future-fstrings',
-    version='0.4.5',
-    author='Anthony Sottile',
-    author_email='asottile@umich.edu',
-    classifiers=[
-        'License :: OSI Approved :: MIT License',
-        'Programming Language :: Python :: 2',
-        'Programming Language :: Python :: 2.7',
-        'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.5',
-        'Programming Language :: Python :: 3.6',
-        'Programming Language :: Python :: Implementation :: CPython',
-        'Programming Language :: Python :: Implementation :: PyPy',
-    ],
-    extras_require={':python_version<"3.6"': ['tokenize-rt']},
-    py_modules=['future_fstrings'],
-    entry_points={'console_scripts': [
-        'future-fstrings-show=future_fstrings:main',
-    ]},
-    cmdclass={'install': install},
-)
+setup(cmdclass={'install': install})
