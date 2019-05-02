@@ -5,6 +5,7 @@ import argparse
 import codecs
 import encodings
 import io
+import re
 import sys
 
 
@@ -152,8 +153,17 @@ def _fstring_parse_outer(s, i, level, parts, exprs):
     return ret
 
 
-def _is_f(tokens, i):
-    return i >= 0 and tokens[i].name == 'NAME' and 'f' in tokens[i].src.lower()
+STRING_PREFIXES_RE = re.compile('^([^\'"]*)(.*)$', re.DOTALL)
+
+
+def _parse_string_literal(s):
+    match = STRING_PREFIXES_RE.match(s)
+    return match.group(1), match.group(2)
+
+
+def _is_f(token):
+    prefix, _ = _parse_string_literal(token.src)
+    return 'f' in prefix.lower()
 
 
 def _make_fstring(tokens):
@@ -163,19 +173,17 @@ def _make_fstring(tokens):
     exprs = []
 
     for i, token in enumerate(tokens):
-        if _is_f(tokens, i):
-            continue
-
-        if token.name == 'STRING' and _is_f(tokens, i - 1):
+        if token.name == 'STRING' and _is_f(token):
+            prefix, s = _parse_string_literal(token.src)
             parts = []
             try:
-                _fstring_parse_outer(token.src, 0, 0, parts, exprs)
+                _fstring_parse_outer(s, 0, 0, parts, exprs)
             except SyntaxError as e:
                 raise TokenSyntaxError(e, tokens[i - 1])
-            if 'r' in tokens[i - 1].src.lower():
+            if 'r' in prefix.lower():
                 parts = [s.replace('\\', '\\\\') for s in parts]
             token = token._replace(src=''.join(parts))
-        elif token.name == 'STRING' and not _is_f(tokens, i - 1):
+        elif token.name == 'STRING':
             new_src = token.src.replace('{', '{{').replace('}', '}}')
             token = token._replace(src=new_src)
         new_tokens.append(token)
@@ -187,8 +195,12 @@ def _make_fstring(tokens):
     return new_tokens
 
 
+def _is_string_prefix(token):
+    return token.name == 'NAME' and set(token.src.lower()) <= set('bfru')
+
+
 def decode(b, errors='strict'):
-    import tokenize_rt
+    import tokenize_rt  # pip install future-fstrings[rewrite]
 
     non_coding_tokens = frozenset((
         'COMMENT', tokenize_rt.ESCAPED_NL, 'NL', tokenize_rt.UNIMPORTANT_WS,
@@ -201,15 +213,25 @@ def decode(b, errors='strict'):
     start = end = seen_f = None
 
     for i, token in enumerate(tokens):
+        # when a string prefix is not recognized, the tokenizer produces a
+        # NAME token followed by a STRING token
+        if (
+                i < len(tokens) - 1 and
+                _is_string_prefix(token) and
+                tokens[i + 1].name == 'STRING'
+        ):
+            newsrc = token.src + tokens[i + 1].src
+            tokens[i + 1] = tokens[i + 1]._replace(src=newsrc)
+            tokens[i] = token = token._replace(src='', name='STRING')
+
         if start is None:
             if token.name == 'STRING':
                 start, end = i, i + 1
-                seen_f = _is_f(tokens, i - 1)
-                start -= seen_f
+                seen_f = _is_f(token)
         elif token.name == 'STRING':
             end = i + 1
-            seen_f |= _is_f(tokens, i - 1)
-        elif not _is_f(tokens, i) and token.name not in non_coding_tokens:
+            seen_f |= _is_f(token)
+        elif token.name not in non_coding_tokens:
             if seen_f:
                 to_replace.append((start, end))
             start = end = seen_f = None
@@ -260,6 +282,7 @@ def _natively_supports_fstrings():
         return False
 
 
+fstring_decode = decode
 SUPPORTS_FSTRINGS = _natively_supports_fstrings()
 if SUPPORTS_FSTRINGS:  # pragma: no cover
     decode = utf_8.decode  # noqa
@@ -292,7 +315,7 @@ def main(argv=None):
     args = parser.parse_args(argv)
 
     with open(args.filename, 'rb') as f:
-        text, _ = decode(f.read())
+        text, _ = fstring_decode(f.read())
     getattr(sys.stdout, 'buffer', sys.stdout).write(text.encode('UTF-8'))
 
 

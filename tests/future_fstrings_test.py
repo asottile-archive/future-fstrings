@@ -74,6 +74,8 @@ def test_strings_quoting_variables():
 def test_raw_strings():
     assert fr'hi\ {1}' == r'hi\ 1'
     assert fr'\n {1}' == r'\n 1'
+    assert RF'\n {1}' == r'\n 1'
+    assert FR'\n {1}' == r'\n 1'
 
 
 def test_sequence_literals():
@@ -182,7 +184,6 @@ def test_streamreader_read():
     assert reader.read() == "'hi {}'.format((x))"
 
 
-@xfailif_native
 def test_main(tmpdir, capsys):
     f = tmpdir.join('f.py')
     f.write(
