@@ -45,6 +45,28 @@ thing = 'world'
 print('hello {}'.format((thing)))
 ```
 
+## Transform source for micropython
+
+The `future-fstrings-show` command can be used to transform source before
+distributing.  This can allow you to write f-string code but target platforms
+which do not support f-strings, such as [micropython].
+
+To use this on modern versions of python, install using:
+
+```bash
+pip install future-fstrings[rewrite]
+```
+
+and then use `future-fstrings-show` as above.
+
+For instance:
+
+```bash
+future-fstrings-show code.py > code_rewritten.py
+```
+
+[micropython]: https://github.com/micropython/micropython
+
 ## How does this work?
 
 `future-fstrings` has two parts:
