@@ -78,6 +78,25 @@ future-fstrings-show code.py > code_rewritten.py
       f-strings.
 2. A `.pth` file which registers a codec on interpreter startup.
 
+## when you aren't using normal `site` registration
+
+in setups (such as aws lambda) where you utilize `PYTHONPATH` or `sys.path`
+instead of truly installed packages, the `.pth` magic above will not take.
+
+for those circumstances, you'll need to manually initialize `future-fstrings`
+in a non-fstring wrapper.  for instance:
+
+```python
+import future_fstrings
+
+future_fstrings.register()
+
+from actual_main import main
+
+if __name__ == '__main__':
+    exit(main())
+```
+
 ## you may also like
 
 - [future-breakpoint](https://github.com/asottile/future-breakpoint)
