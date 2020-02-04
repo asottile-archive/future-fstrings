@@ -1,37 +1,31 @@
-import os.path
+import sqlite3
 
-from coverage.data import CoverageData
-
-
-def merge_coverage(coverage_data, from_path, to_path):
-    for filename in coverage_data.measured_files():
-        result_filename = filename.split(from_path)[-1]
-        if filename == result_filename:
-            continue
-
-        result_filename = result_filename.lstrip('/')
-        result_filename = os.path.join(to_path, result_filename)
-        result_filename = os.path.abspath(result_filename)
-        if os.path.exists(result_filename):
-            coverage_data.add_arcs(
-                {result_filename: coverage_data.arcs(filename)}
-            )
-
-        del coverage_data._arcs[filename]
-        coverage_data._validate_invariants()
-
-
-def fix_coverage(from_path, to_path):
-    coverage_data = CoverageData()
-    os.rename('.coverage', '.coverage.orig')
-    coverage_data.read_file('.coverage.orig')
-    merge_coverage(coverage_data, from_path, to_path)
-    coverage_data.write_file('.coverage')
-    os.remove('.coverage.orig')
+QUERY_SITE_PACKAGES = '''\
+SELECT id FROM file WHERE path LIKE '%site-packages/future_fstrings.py'
+'''
+QUERY_NOT_SITE_PACKAGES = '''\
+SELECT id FROM file
+WHERE (
+    path LIKE '%/future_fstrings.py' AND
+    path NOT LIKE '%site-packages/future_fstrings.py'
+)
+'''
+QUERY_TEST = '''\
+SELECT id FROM file WHERE path LIKE '%/future_fstrings_test.py'
+'''
+MERGE_FILE_IN_ARC = 'UPDATE arc SET file_id = ? WHERE file_id = ?'
+DELETE_FROM_ARC = 'DELETE FROM arc WHERE file_id NOT IN (?, ?)'
+DELETE_FROM_FILE = 'DELETE FROM file WHERE id NOT IN (?, ?)'
 
 
 def main():
-    fix_coverage('/site-packages/', os.getcwd())
+    with sqlite3.connect('.coverage') as db:
+        (site_packages,) = db.execute(QUERY_SITE_PACKAGES).fetchone()
+        (src,) = db.execute(QUERY_NOT_SITE_PACKAGES).fetchone()
+        (test,) = db.execute(QUERY_TEST).fetchone()
+        db.execute(MERGE_FILE_IN_ARC, (src, site_packages))
+        db.execute(DELETE_FROM_ARC, (src, test))
+        db.execute(DELETE_FROM_FILE, (src, test))
 
 
 if __name__ == '__main__':
