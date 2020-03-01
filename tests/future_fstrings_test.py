@@ -2,7 +2,6 @@
 from __future__ import absolute_import
 from __future__ import unicode_literals
 
-import imp
 import io
 import subprocess
 import sys
@@ -204,4 +203,9 @@ def test_fix_coverage():
 
     Run this last so it doesn't interfere with tests in any way.
     """
-    imp.reload(future_fstrings)
+    if sys.version_info < (3,):  # pragma: no cover (PY2)
+        import imp
+        imp.reload(future_fstrings)
+    else:  # pragma: no cover (PY3)
+        import importlib
+        importlib.reload(future_fstrings)
