@@ -58,7 +58,8 @@ def test_with_bangs():
 
 
 def test_with_braces():
-    assert f'hello {{ hi }}' == 'hello { hi }'
+    hello = 'hello'
+    assert f'hello {{ hi }} {hello}' == 'hello { hi } hello'
 
 
 def test_strings_quoting_variables():
