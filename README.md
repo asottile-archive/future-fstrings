@@ -99,4 +99,5 @@ if __name__ == '__main__':
 
 ## you may also like
 
+- [future-annotations](https://github.com/asottile/future-annotations)
 - [future-breakpoint](https://github.com/asottile/future-breakpoint)
